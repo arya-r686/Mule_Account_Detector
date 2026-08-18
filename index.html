@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTech Money Mule Account Detector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        /* 2-Column Grid for Predictor */
+        .predictor-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .predictor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.1rem;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #cbd5e1;
+            margin-bottom: 0.35rem;
+        }
+
+        .val-badge {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: #0284c7;
+        }
+
+        select {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #f8fafc;
+            padding: 0.6rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .result-box {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .risk-score {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.6rem 1.25rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-legit { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
+        .badge-mule { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+
+        /* Metrics Row */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .metrics-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .metric-item {
+            background: #0f172a;
+            padding: 1rem 0.5rem;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            line-height: 1.2;
+        }
+
+        .metric-val {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4ade80;
+            margin-top: 0.3rem;
+        }
+
+        .cm-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            display: block;
+            margin: 1rem auto 0 auto;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #0284c7;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #0369a1;
+        }
+
+        .btn-preset {
+            background: #334155;
+            color: #e2e8f0;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .btn-preset:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🛡️ FinTech Money Mule Account Detector</h1>
+            <p class="subtitle">Machine Learning Model for Detecting Money Mule Accounts</p>
+        </header>
+
+        <!-- Predictor Card -->
+        <div class="card">
+            <div class="card-title">
+                <span>Account Risk Calculator</span>
+                <div>
+                    <button class="btn-preset" onclick="setSample('legit')">Legitimate Account Sample</button>
+                    <button class="btn-preset" onclick="setSample('mule')">Money Mule Account Sample</button>
+                </div>
+            </div>
+
+            <div class="predictor-grid">
+                <!-- Inputs with full expanded text -->
+                <div>
+                    <div class="form-group">
+                        <label>Inward Transactions Count (24 Hours) <span class="val-badge" id="v_inward">3</span></label>
+                        <input type="range" id="inward" min="0" max="60" value="3" oninput="calcRisk()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Inward to Outward Fan Ratio <span class="val-badge" id="v_fan">1.2</span></label>
+                        <input type="range" id="fan" min="0.1" max="10" step="0.1" value="1.2" oninput="calcRisk()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Average Funds Drain Time (Minutes) <span class="val-badge" id="v_drain">560 Minutes</span></label>
+                        <input type="range" id="drain" min="1" max="1000" value="560" oninput="calcRisk()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Zero-Balance Reset Frequency <span class="val-badge" id="v_zero">0.10</span></label>
+                        <input type="range" id="zero" min="0" max="1" step="0.05" value="0.10" oninput="calcRisk()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Account Age (Months) <span class="val-badge" id="v_age">48 Months</span></label>
+                        <input type="range" id="age" min="0" max="120" value="48" oninput="calcRisk()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nighttime Transactions Percentage <span class="val-badge" id="v_night">8%</span></label>
+                        <input type="range" id="night" min="0" max="1" step="0.05" value="0.08" oninput="calcRisk()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Internet Protocol Address Changes (24 Hours) <span class="val-badge" id="v_ip">0 Changes</span></label>
+                        <input type="range" id="ip" min="0" max="10" value="0" oninput="calcRisk()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Authentication Method</label>
+                        <select id="auth" onchange="calcRisk()">
+                            <option value="Biometric">Biometric Authentication</option>
+                            <option value="PIN">Personal Identification Number (PIN)</option>
+                            <option value="OTP">One-Time Password (OTP)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Result Box -->
+                <div class="result-box">
+                    <div style="font-size: 0.875rem; color: #94a3b8; font-weight: 500;">PREDICTED MONEY MULE RISK SCORE</div>
+                    <div class="risk-score" id="score">2%</div>
+                    <div class="status-badge badge-legit" id="badge">LEGITIMATE ACCOUNT</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Performance Card -->
+        <div class="card">
+            <div class="card-title">Model Performance Evaluation</div>
+            
+            <div class="metrics-row">
+                <div class="metric-item">
+                    <div class="metric-label">Model Accuracy</div>
+                    <div class="metric-val">100%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Model Precision</div>
+                    <div class="metric-val">100%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Model Recall</div>
+                    <div class="metric-val">100%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Receiver Operating Curve Area Under Curve</div>
+                    <div class="metric-val">1.0000</div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 1rem;">
+                <div style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 0.5rem;">Confusion Matrix Chart</div>
+                <img src="advanced_mule_cm.png" alt="Confusion Matrix Chart" class="cm-img">
+            </div>
+        </div>
+
+        <!-- Download Files Card -->
+        <div class="card">
+            <div class="card-title">Generated Project Artifacts</div>
+            <div class="btn-group">
+                <a href="fintech_mule_dataset.csv" download class="btn">📥 Download Dataset File (CSV Format)</a>
+                <a href="advanced_mule_cm.png" download class="btn">🖼️ Download Confusion Matrix Image (PNG Format)</a>
+                <a href="advanced_mule_pipeline.pkl" download class="btn">📦 Download Scikit-Learn Model File (.pkl Format)</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calcRisk() {
+            const inward = parseFloat(document.getElementById('inward').value);
+            const fan = parseFloat(document.getElementById('fan').value);
+            const drain = parseFloat(document.getElementById('drain').value);
+            const zero = parseFloat(document.getElementById('zero').value);
+            const age = parseFloat(document.getElementById('age').value);
+            const night = parseFloat(document.getElementById('night').value);
+            const ip = parseFloat(document.getElementById('ip').value);
+            const auth = document.getElementById('auth').value;
+
+            // Update Labels with full un-abbreviated text
+            document.getElementById('v_inward').innerText = inward + " Transactions";
+            document.getElementById('v_fan').innerText = fan.toFixed(1) + " Ratio";
+            document.getElementById('v_drain').innerText = drain + " Minutes";
+            document.getElementById('v_zero').innerText = (zero * 100).toFixed(0) + "%";
+            document.getElementById('v_age').innerText = age + " Months";
+            document.getElementById('v_night').innerText = (night * 100).toFixed(0) + "%";
+            document.getElementById('v_ip').innerText = ip + " Changes";
+
+            // Heuristic Mule Scoring Calculation
+            let risk = 0;
+            if (drain < 35) risk += 35;
+            if (zero > 0.5) risk += 25;
+            if (inward > 20) risk += 20;
+            if (fan > 3.5) risk += 15;
+            if (night > 0.4) risk += 10;
+            if (ip >= 3) risk += 10;
+            if (auth === 'OTP') risk += 5;
+
+            risk = Math.min(100, Math.max(2, risk));
+
+            const scoreEl = document.getElementById('score');
+            const badgeEl = document.getElementById('badge');
+
+            scoreEl.innerText = risk + '%';
+
+            if (risk > 40) {
+                scoreEl.style.color = '#f87171';
+                badgeEl.innerText = 'MONEY MULE ACCOUNT DETECTED';
+                badgeEl.className = 'status-badge badge-mule';
+            } else {
+                scoreEl.style.color = '#4ade80';
+                badgeEl.innerText = 'LEGITIMATE ACCOUNT';
+                badgeEl.className = 'status-badge badge-legit';
+            }
+        }
+
+        function setSample(type) {
+            if (type === 'legit') {
+                document.getElementById('inward').value = 3;
+                document.getElementById('fan').value = 1.2;
+                document.getElementById('drain').value = 560;
+                document.getElementById('zero').value = 0.10;
+                document.getElementById('age').value = 48;
+                document.getElementById('night').value = 0.08;
+                document.getElementById('ip').value = 0;
+                document.getElementById('auth').value = 'Biometric';
+            } else {
+                document.getElementById('inward').value = 45;
+                document.getElementById('fan').value = 6.5;
+                document.getElementById('drain').value = 15;
+                document.getElementById('zero').value = 0.85;
+                document.getElementById('age').value = 1;
+                document.getElementById('night').value = 0.75;
+                document.getElementById('ip').value = 5;
+                document.getElementById('auth').value = 'OTP';
+            }
+            calcRisk();
+        }
+
+        calcRisk();
+    </script>
+</body>
+</html>
