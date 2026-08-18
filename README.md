@@ -1,33 +1,43 @@
-# 🛡️ FinTech Money Mule Account Detector
+# 🛡️ FinTech Money Mule Account Detector (End-to-End ML Web Application)
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.3%2B-orange.svg)](https://scikit-learn.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Accuracy](https://img.shields.io/badge/Model%20Accuracy-100%25-brightgreen.svg)]()
 
-An **Enterprise-Grade Machine Learning & Risk Inference System** designed to detect illegal Money Mule accounts in FinTech digital banking environments. Powered by `HistGradientBoostingClassifier`, this project identifies both **Classic Burner Mules** and **Compromised Sleeper Mules** with high precision and zero false positives.
+An **End-to-End Machine Learning Web Application** designed to detect illegal Money Mule accounts in FinTech digital banking systems.
+
+The system connects an interactive **Frontend Dashboard** to a **Python FastAPI REST API Backend**, which executes real-time inference using a trained `HistGradientBoostingClassifier` model pipeline (`advanced_mule_pipeline.pkl`).
 
 ---
 
-## 📌 Executive Summary
+## 🔄 End-to-End System Architecture
 
-Money mule accounts are a primary mechanism for illicit funds transfer, money laundering, and fraud cash-outs in modern financial institutions. Traditional static rule engines fail to detect subtle behavioral shifts, especially when legacy accounts are compromised or bought by fraud syndicates.
-
-This project implements a complete end-to-end solution:
-1. **Enterprise Data Simulator**: Generates 5,000 realistic customer account profiles covering legitimate users, rapid burner mules, and dormant sleeper accounts.
-2. **Machine Learning Pipeline**: Uses scikit-learn's `ColumnTransformer`, `StandardScaler`, `OneHotEncoder`, and `HistGradientBoostingClassifier`.
-3. **Interactive Risk Calculator Web Dashboard**: A lightweight, minimal web application allowing real-time account risk scoring and metrics inspection.
+```text
++-----------------------+           JSON Payload           +---------------------------+
+|                       |  ----------------------------->  |                           |
+|   Frontend Dashboard  |   POST /predict (Port 8000)      |    FastAPI Python Backend |
+|     (index.html)      |                                  |      (backend/main.py)     |
+|                       |  <-----------------------------  |                           |
++-----------------------+        Prediction JSON           +---------------------------+
+                                                                         |
+                                                                         v
+                                                           +---------------------------+
+                                                           |  Trained ML Model Pipeline|
+                                                           | (advanced_mule_pipeline.pkl)|
+                                                           +---------------------------+
+```
 
 ---
 
 ## 🚀 Key Features
 
-- **Synthetic Enterprise Dataset Generator**: Models 5,000 retail banking accounts across 8 behavioral parameters.
-- **Dual Mule Behavioral Profiling**:
-  - **Classic Burner Mules**: Fresh accounts with high inward transaction velocity, short fund drain times (<15 mins), high zero-balance reset frequency, and night-time transactions.
-  - **Compromised Sleeper Mules**: Aged accounts (3-10 years old) suddenly exhibiting high inward transaction spikes and remote access takeovers.
-- **100% Classification Accuracy & Recall**: Achieves an optimal F1-score and ROC-AUC of 1.0000 on holdout test datasets.
-- **Interactive Single-Page Web UI**: Built with pure HTML/CSS/JavaScript to test risk scoring in real-time.
+- **Real ML Model Inference**: The frontend dashboard sends user input parameters directly to `POST /predict` on the FastAPI server, which calls `model.predict()` and `model.predict_proba()` on `advanced_mule_pipeline.pkl`.
+- **FastAPI REST API**: Validates inputs with Pydantic, applies `StandardScaler` & `OneHotEncoder` preprocessing via the pipeline, calculates risk scores ($0 \text{ to } 100$), classifies risk levels (`LOW`, `MEDIUM`, `HIGH`), and returns feature-based risk explanations.
+- **Graceful Error Handling & Health Monitoring**: The UI displays a live API connection status indicator and handles server offline/network errors without crashing.
+- **CORS Configured**: Configurable CORS middleware allows secure cross-origin communication between the deployed frontend and backend.
+- **Synthetic Data Disclaimer**: Transparently discloses that evaluations were conducted on synthetic dataset distributions.
 
 ---
 
@@ -43,96 +53,80 @@ The pipeline was evaluated on a 20% stratified test split (1,000 accounts):
 | **F1 Score** | **1.0000** | Harmonic mean of precision and recall |
 | **ROC-AUC Score** | **1.0000** | Area Under Receiver Operating Characteristic Curve |
 
+> 📌 **Synthetic Data Disclosure:** The model was evaluated on a synthetic dataset and achieved high classification performance under the generated data distribution. Real-world financial deployment would require validation on representative banking transaction telemetry.
+
 ### Confusion Matrix Chart
 ![Confusion Matrix](advanced_mule_cm.png)
 
 ---
 
-## 🗂️ Feature Attributes & Descriptions
-
-| Attribute | Data Type | Description |
-| :--- | :--- | :--- |
-| `Inward_Tx_Count_24h` | Integer | Total incoming transactions received in the past 24 hours |
-| `In_Out_Fan_Ratio` | Float | Ratio of outward transfer destinations to inward sources |
-| `Avg_Drain_Time_Mins` | Float | Average time (in minutes) before incoming funds are transferred out |
-| `Zero_Balance_Reset_Freq` | Float | Frequency (0.0 to 1.0) at which account balance drops back to zero |
-| `Account_Age_Months` | Integer | Age of the bank account in months |
-| `Night_Tx_Percentage` | Float | Proportion (0.0 to 1.0) of transactions performed during nighttime hours |
-| `IP_Change_Count_24h` | Integer | Number of unique Internet Protocol (IP) address changes in 24 hours |
-| `Auth_Method` | Categorical | Primary authentication method (`Biometric`, `PIN`, `OTP`) |
-
----
-
-## 🏗️ Project Architecture
-
-```mermaid
-graph TD
-    A["Raw Account Data<br/>(5,000 Samples)"] --> B["Stratified Train/Test Split<br/>(80% Train / 20% Test)"]
-    B --> C["scikit-learn ColumnTransformer"]
-    C --> D1["StandardScaler<br/>(7 Numerical Features)"]
-    C --> D2["OneHotEncoder<br/>(1 Categorical Feature)"]
-    D1 --> E["HistGradientBoostingClassifier<br/>(max_iter=150, learning_rate=0.05)"]
-    D2 --> E
-    E --> F["Trained Pipeline (.pkl)"]
-    E --> G["Confusion Matrix & Metrics Export"]
-    F --> H["Interactive Web Application Dashboard"]
-```
-
----
-
-## 📁 Repository Directory Structure
+## 🗂️ Project Directory Structure
 
 ```text
 fintech_mule_detector/
-├── train_mule_detector.py    # Main Machine Learning training & dataset script
-├── index.html                # Simplified real-time web calculator & dashboard
-├── fintech_mule_dataset.csv  # Generated synthetic dataset (5,000 records)
-├── advanced_mule_cm.png      # Exported Confusion Matrix plot
-├── advanced_mule_pipeline.pkl# Exported scikit-learn model pipeline
-├── requirements.txt          # Python library dependencies
-└── README.md                 # Project documentation
+├── backend/
+│   ├── main.py                  # FastAPI Python backend application
+│   ├── advanced_mule_pipeline.pkl# Trained scikit-learn model pipeline
+│   └── requirements.txt         # Backend Python dependencies
+├── index.html                   # Single-page frontend dashboard
+├── fintech_mule_dataset.csv     # Synthetic dataset (5,000 records)
+├── advanced_mule_cm.png         # Exported Confusion Matrix plot
+├── advanced_mule_pipeline.pkl   # Model file (root)
+├── train_mule_detector.py       # Data simulator & ML training pipeline script
+├── vercel.json                  # Vercel static deployment config
+├── requirements.txt             # Project requirements
+├── README.md                    # Project documentation
+└── EXPLANATION.md               # Technical working breakdown
 ```
 
 ---
 
-## ⚡ Quick Start Guide
+## ⚡ How to Run Locally
 
-### Prerequisites
-- Python 3.9 or higher
-- `pip` package manager
-
-### 1. Clone the Repository
+### 1. Install Dependencies
 ```bash
-git clone https://github.com/your-username/fintech-mule-detector.git
-cd fintech-mule-detector
+# Install backend dependencies
+pip install -r backend/requirements.txt
 ```
 
-### 2. Install Dependencies
+### 2. Start the Python FastAPI Backend API
 ```bash
-pip install -r requirements.txt
+# Run FastAPI server on http://localhost:8000
+python -m uvicorn backend.main:app --reload --port 8000
 ```
+*You can verify the backend is running by opening `http://localhost:8000/docs` in your browser.*
 
-### 3. Run the ML Pipeline Script
-Train the model, generate the dataset, evaluate performance metrics, and save all artifacts:
+### 3. Start the Frontend Dashboard
+In a separate terminal window:
 ```bash
-python train_mule_detector.py
-```
-
-### 4. Launch the Web Application Dashboard
-Start a local HTTP web server to open the interactive frontend:
-```bash
+# Serve static frontend on http://localhost:8080
 python -m http.server 8080
 ```
-Open your web browser and navigate to: **`http://localhost:8080`**
+Open **`http://localhost:8080`** in your browser to interact with the ML-powered dashboard!
 
 ---
 
-## 🛠️ Tech Stack
+## 🌐 Deployment Guide
 
-- **Machine Learning**: `scikit-learn`, `HistGradientBoostingClassifier`, `joblib`
-- **Data Engineering & Analysis**: `pandas`, `numpy`
-- **Data Visualization**: `seaborn`, `matplotlib`
-- **Frontend**: HTML5, Vanilla CSS3, JavaScript (ES6)
+### A. Deploying the Frontend (Vercel)
+1. Import your GitHub repository (`Mule_Account_Detector`) into **Vercel**.
+2. Vercel uses `vercel.json` to deploy the static frontend.
+3. In Vercel Project Settings ➔ Environment Variables, set:
+   ```text
+   VITE_API_URL=https://your-backend-api.onrender.com
+   ```
+
+### B. Deploying the Backend (Render / Railway / Koyeb)
+1. Create a new **Web Service** on Render or Railway connecting your repository.
+2. Set Root Directory to `backend` (or build command `pip install -r backend/requirements.txt`).
+3. Set Start Command to:
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port $PORT
+   ```
+4. Set Environment Variable:
+   ```text
+   ALLOWED_ORIGINS=https://your-frontend-app.vercel.app,http://localhost:8080
+   ```
 
 ---
 

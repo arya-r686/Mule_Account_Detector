@@ -23,13 +23,13 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
         }
 
         header {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
         }
 
         h1 {
@@ -43,6 +43,32 @@
             color: #94a3b8;
             font-size: 1rem;
         }
+
+        /* Server Status Pill */
+        .status-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .status-online { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .status-offline { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .dot-green { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .dot-red { background: #ef4444; }
 
         .card {
             background: #1e293b;
@@ -64,7 +90,19 @@
             gap: 0.75rem;
         }
 
-        /* 2-Column Grid for Predictor */
+        /* Error Alert Box */
+        .error-alert {
+            display: none;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Predictor Grid */
         .predictor-grid {
             display: grid;
             grid-template-columns: 1.2fr 0.8fr;
@@ -98,6 +136,10 @@
         input[type="range"] {
             width: 100%;
             accent-color: #0284c7;
+            height: 6px;
+            background: #0f172a;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
         select {
@@ -108,24 +150,31 @@
             padding: 0.6rem;
             border-radius: 6px;
             font-size: 0.9rem;
+            outline: none;
         }
 
+        select:focus {
+            border-color: #0284c7;
+        }
+
+        /* ML Inference Result Display Box */
         .result-box {
             background: #0f172a;
             border: 1px solid #334155;
             border-radius: 10px;
             padding: 1.5rem;
-            text-align: center;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+            text-align: center;
         }
 
         .risk-score {
             font-size: 3.5rem;
             font-weight: 700;
-            margin: 0.5rem 0;
+            margin: 0.25rem 0;
+            font-family: monospace;
         }
 
         .status-badge {
@@ -136,10 +185,46 @@
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
         }
 
         .badge-legit { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
+        .badge-suspicious { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
         .badge-mule { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+
+        .confidence-text {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .reasons-box {
+            width: 100%;
+            text-align: left;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 8px;
+            padding: 0.85rem;
+            border: 1px solid #334155;
+        }
+
+        .reasons-header {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .reasons-list {
+            list-style-type: disc;
+            padding-left: 1.2rem;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+
+        .reasons-list li {
+            margin-bottom: 0.25rem;
+        }
 
         /* Metrics Row */
         .metrics-row {
@@ -185,7 +270,7 @@
             margin: 1rem auto 0 auto;
         }
 
-        /* Buttons */
+        /* Download Buttons */
         .btn-group {
             display: flex;
             gap: 1rem;
@@ -221,6 +306,15 @@
         .btn-preset:hover {
             background: #475569;
         }
+
+        .disclaimer-box {
+            font-size: 0.78rem;
+            color: #64748b;
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 0.75rem;
+            border-top: 1px solid #334155;
+        }
     </style>
 </head>
 <body>
@@ -229,13 +323,27 @@
         <!-- Header -->
         <header>
             <h1>🛡️ FinTech Money Mule Account Detector</h1>
-            <p class="subtitle">Machine Learning Model for Detecting Money Mule Accounts</p>
+            <p class="subtitle">End-to-End Machine Learning Pipeline & Real-Time Python Inference API</p>
+            
+            <div class="status-container">
+                <span style="color: #94a3b8;">Python Backend API Status:</span>
+                <div id="serverStatusPill" class="status-pill status-offline">
+                    <span id="serverStatusDot" class="status-dot dot-red"></span>
+                    <span id="serverStatusText">CONNECTING TO MODEL SERVER...</span>
+                </div>
+            </div>
         </header>
+
+        <!-- Error Alert Banner -->
+        <div id="errorAlert" class="error-alert">
+            <strong>⚠️ Backend Connection Warning:</strong>
+            <span id="errorMessage">Unable to connect to prediction server at <code id="apiEndpointText">http://localhost:8000</code>. Please ensure the Python API server is running using <code>uvicorn backend.main:app --reload</code>.</span>
+        </div>
 
         <!-- Predictor Card -->
         <div class="card">
             <div class="card-title">
-                <span>Account Risk Calculator</span>
+                <span>Account Risk Calculator (ML Model Pipeline)</span>
                 <div>
                     <button class="btn-preset" onclick="setSample('legit')">Legitimate Account Sample</button>
                     <button class="btn-preset" onclick="setSample('mule')">Money Mule Account Sample</button>
@@ -243,46 +351,46 @@
             </div>
 
             <div class="predictor-grid">
-                <!-- Inputs with full expanded text -->
+                <!-- Inputs -->
                 <div>
                     <div class="form-group">
-                        <label>Inward Transactions Count (24 Hours) <span class="val-badge" id="v_inward">3</span></label>
-                        <input type="range" id="inward" min="0" max="60" value="3" oninput="calcRisk()">
+                        <label>Inward Transactions Count (24 Hours) <span class="val-badge" id="v_inward">3 Transactions</span></label>
+                        <input type="range" id="inward" min="0" max="60" value="3" oninput="triggerPrediction()">
                     </div>
 
                     <div class="form-group">
-                        <label>Inward to Outward Fan Ratio <span class="val-badge" id="v_fan">1.2</span></label>
-                        <input type="range" id="fan" min="0.1" max="10" step="0.1" value="1.2" oninput="calcRisk()">
+                        <label>Inward to Outward Fan Ratio <span class="val-badge" id="v_fan">1.2 Ratio</span></label>
+                        <input type="range" id="fan" min="0.1" max="10" step="0.1" value="1.2" oninput="triggerPrediction()">
                     </div>
 
                     <div class="form-group">
                         <label>Average Funds Drain Time (Minutes) <span class="val-badge" id="v_drain">560 Minutes</span></label>
-                        <input type="range" id="drain" min="1" max="1000" value="560" oninput="calcRisk()">
+                        <input type="range" id="drain" min="1" max="1000" value="560" oninput="triggerPrediction()">
                     </div>
 
                     <div class="form-group">
-                        <label>Zero-Balance Reset Frequency <span class="val-badge" id="v_zero">0.10</span></label>
-                        <input type="range" id="zero" min="0" max="1" step="0.05" value="0.10" oninput="calcRisk()">
+                        <label>Zero-Balance Reset Frequency <span class="val-badge" id="v_zero">10%</span></label>
+                        <input type="range" id="zero" min="0" max="1" step="0.05" value="0.10" oninput="triggerPrediction()">
                     </div>
 
                     <div class="form-group">
                         <label>Account Age (Months) <span class="val-badge" id="v_age">48 Months</span></label>
-                        <input type="range" id="age" min="0" max="120" value="48" oninput="calcRisk()">
+                        <input type="range" id="age" min="0" max="120" value="48" oninput="triggerPrediction()">
                     </div>
 
                     <div class="form-group">
                         <label>Nighttime Transactions Percentage <span class="val-badge" id="v_night">8%</span></label>
-                        <input type="range" id="night" min="0" max="1" step="0.05" value="0.08" oninput="calcRisk()">
+                        <input type="range" id="night" min="0" max="1" step="0.05" value="0.08" oninput="triggerPrediction()">
                     </div>
 
                     <div class="form-group">
                         <label>Internet Protocol Address Changes (24 Hours) <span class="val-badge" id="v_ip">0 Changes</span></label>
-                        <input type="range" id="ip" min="0" max="10" value="0" oninput="calcRisk()">
+                        <input type="range" id="ip" min="0" max="10" value="0" oninput="triggerPrediction()">
                     </div>
 
                     <div class="form-group">
                         <label>Authentication Method</label>
-                        <select id="auth" onchange="calcRisk()">
+                        <select id="auth" onchange="triggerPrediction()">
                             <option value="Biometric">Biometric Authentication</option>
                             <option value="PIN">Personal Identification Number (PIN)</option>
                             <option value="OTP">One-Time Password (OTP)</option>
@@ -290,11 +398,19 @@
                     </div>
                 </div>
 
-                <!-- Result Box -->
+                <!-- Result Display Box -->
                 <div class="result-box">
-                    <div style="font-size: 0.875rem; color: #94a3b8; font-weight: 500;">PREDICTED MONEY MULE RISK SCORE</div>
-                    <div class="risk-score" id="score">2%</div>
+                    <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">PREDICTED MONEY MULE RISK SCORE</div>
+                    <div class="risk-score" id="score">0 / 100</div>
                     <div class="status-badge badge-legit" id="badge">LEGITIMATE ACCOUNT</div>
+                    <div class="confidence-text" id="confidenceText">0.0% Model Confidence</div>
+
+                    <div class="reasons-box">
+                        <div class="reasons-header">ML MODEL EXPLANATIONS:</div>
+                        <ul class="reasons-list" id="reasonsList">
+                            <li>Awaiting ML Model prediction...</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -337,10 +453,58 @@
                 <a href="advanced_mule_pipeline.pkl" download class="btn">📦 Download Scikit-Learn Model File (.pkl Format)</a>
             </div>
         </div>
+
+        <div class="disclaimer-box">
+            📌 <strong>Synthetic Data Disclosure:</strong> The model was trained and evaluated on a synthetic dataset and achieved high classification performance under the generated data distributions. Real-world financial deployment requires validation on representative banking transaction telemetry.
+        </div>
     </div>
 
+    <!-- JavaScript - End-to-End API Integration -->
     <script>
-        function calcRisk() {
+        // Configurable API URL (Environment variable fallback or window override)
+        const API_BASE_URL = window.VITE_API_URL || window.API_URL || "http://localhost:8000";
+        document.getElementById('apiEndpointText').textContent = API_BASE_URL;
+
+        let debounceTimer = null;
+
+        // Health Check API Server
+        async function checkServerHealth() {
+            const statusPill = document.getElementById('serverStatusPill');
+            const statusDot = document.getElementById('serverStatusDot');
+            const statusText = document.getElementById('serverStatusText');
+            const errorAlert = document.getElementById('errorAlert');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`, { method: 'GET' });
+                if (response.ok) {
+                    statusPill.className = 'status-pill status-online';
+                    statusDot.className = 'status-dot dot-green';
+                    statusText.textContent = 'PYTHON ML API ONLINE';
+                    errorAlert.style.display = 'none';
+                    return true;
+                } else {
+                    throw new Error(`Server returned HTTP status ${response.status}`);
+                }
+            } catch (err) {
+                statusPill.className = 'status-pill status-offline';
+                statusDot.className = 'status-dot dot-red';
+                statusText.textContent = 'PYTHON ML API OFFLINE';
+                errorAlert.style.display = 'block';
+                return false;
+            }
+        }
+
+        // Trigger Model Prediction with Debouncing
+        function triggerPrediction() {
+            updateValueLabels();
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                runMLPrediction();
+            }, 100);
+        }
+
+        // Update UI Input Labels
+        function updateValueLabels() {
             const inward = parseFloat(document.getElementById('inward').value);
             const fan = parseFloat(document.getElementById('fan').value);
             const drain = parseFloat(document.getElementById('drain').value);
@@ -348,9 +512,7 @@
             const age = parseFloat(document.getElementById('age').value);
             const night = parseFloat(document.getElementById('night').value);
             const ip = parseFloat(document.getElementById('ip').value);
-            const auth = document.getElementById('auth').value;
 
-            // Update Labels with full un-abbreviated text
             document.getElementById('v_inward').innerText = inward + " Transactions";
             document.getElementById('v_fan').innerText = fan.toFixed(1) + " Ratio";
             document.getElementById('v_drain').innerText = drain + " Minutes";
@@ -358,35 +520,90 @@
             document.getElementById('v_age').innerText = age + " Months";
             document.getElementById('v_night').innerText = (night * 100).toFixed(0) + "%";
             document.getElementById('v_ip').innerText = ip + " Changes";
+        }
 
-            // Heuristic Mule Scoring Calculation
-            let risk = 0;
-            if (drain < 35) risk += 35;
-            if (zero > 0.5) risk += 25;
-            if (inward > 20) risk += 20;
-            if (fan > 3.5) risk += 15;
-            if (night > 0.4) risk += 10;
-            if (ip >= 3) risk += 10;
-            if (auth === 'OTP') risk += 5;
-
-            risk = Math.min(100, Math.max(2, risk));
+        // Call FastAPI POST /predict
+        async function runMLPrediction() {
+            const payload = {
+                Inward_Tx_Count_24h: parseFloat(document.getElementById('inward').value),
+                In_Out_Fan_Ratio: parseFloat(document.getElementById('fan').value),
+                Avg_Drain_Time_Mins: parseFloat(document.getElementById('drain').value),
+                Zero_Balance_Reset_Freq: parseFloat(document.getElementById('zero').value),
+                Account_Age_Months: parseFloat(document.getElementById('age').value),
+                Night_Tx_Percentage: parseFloat(document.getElementById('night').value),
+                IP_Change_Count_24h: parseFloat(document.getElementById('ip').value),
+                Auth_Method: document.getElementById('auth').value
+            };
 
             const scoreEl = document.getElementById('score');
             const badgeEl = document.getElementById('badge');
+            const confidenceEl = document.getElementById('confidenceText');
+            const reasonsList = document.getElementById('reasonsList');
 
-            scoreEl.innerText = risk + '%';
+            try {
+                const response = await fetch(`${API_BASE_URL}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-            if (risk > 40) {
-                scoreEl.style.color = '#f87171';
-                badgeEl.innerText = 'MONEY MULE ACCOUNT DETECTED';
-                badgeEl.className = 'status-badge badge-mule';
-            } else {
-                scoreEl.style.color = '#4ade80';
-                badgeEl.innerText = 'LEGITIMATE ACCOUNT';
-                badgeEl.className = 'status-badge badge-legit';
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // Update Risk Score (0 / 100)
+                scoreEl.innerText = `${data.risk_score} / 100`;
+
+                // Update Confidence Text (e.g., "99.8% Model Confidence")
+                confidenceEl.innerText = `${(data.probability * 100).toFixed(1)}% Model Confidence (${data.risk_level} RISK)`;
+
+                // Update Status Badge
+                if (data.risk_level === 'HIGH' || data.is_mule) {
+                    scoreEl.style.color = '#f87171';
+                    badgeEl.innerText = 'MONEY MULE ACCOUNT DETECTED';
+                    badgeEl.className = 'status-badge badge-mule';
+                } else if (data.risk_level === 'MEDIUM') {
+                    scoreEl.style.color = '#fbbf24';
+                    badgeEl.innerText = 'SUSPICIOUS ACCOUNT';
+                    badgeEl.className = 'status-badge badge-suspicious';
+                } else {
+                    scoreEl.style.color = '#4ade80';
+                    badgeEl.innerText = 'LEGITIMATE ACCOUNT';
+                    badgeEl.className = 'status-badge badge-legit';
+                }
+
+                // Render ML Explanations
+                reasonsList.innerHTML = '';
+                if (data.reasons && data.reasons.length > 0) {
+                    data.reasons.forEach(reason => {
+                        const li = document.createElement('li');
+                        li.textContent = reason;
+                        reasonsList.appendChild(li);
+                    });
+                } else {
+                    reasonsList.innerHTML = '<li>No anomalous risk indicators detected by model.</li>';
+                }
+
+                // Clear Error Banner if visible
+                document.getElementById('errorAlert').style.display = 'none';
+
+            } catch (err) {
+                console.warn("Prediction API call failed:", err);
+                document.getElementById('errorAlert').style.display = 'block';
+                
+                // Fallback UI indication
+                scoreEl.innerText = "N/A";
+                scoreEl.style.color = "#94a3b8";
+                badgeEl.innerText = "API UNREACHABLE";
+                badgeEl.className = "status-badge badge-suspicious";
+                confidenceEl.innerText = "Check Python Backend API Connection";
+                reasonsList.innerHTML = "<li>Unable to retrieve model prediction. Ensure backend is running.</li>";
             }
         }
 
+        // Preset Sample Buttons
         function setSample(type) {
             if (type === 'legit') {
                 document.getElementById('inward').value = 3;
@@ -407,10 +624,14 @@
                 document.getElementById('ip').value = 5;
                 document.getElementById('auth').value = 'OTP';
             }
-            calcRisk();
+            triggerPrediction();
         }
 
-        calcRisk();
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkServerHealth();
+            triggerPrediction();
+        });
     </script>
 </body>
 </html>
