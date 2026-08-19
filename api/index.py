@@ -6,12 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+# Initialize FastAPI App
 app = FastAPI(
     title="FinTech Money Mule Detector API",
     description="Machine Learning REST API for detecting money mule accounts using trained HistGradientBoosting model.",
     version="1.0.0"
 )
 
+# Configure CORS Middleware
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:8080,http://localhost:3000,http://127.0.0.1:8080,http://127.0.0.1:8000,http://localhost:8000,*")
 allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
 
@@ -23,10 +25,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Load Trained Model Pipeline
 MODEL_PATH_LOCATIONS = [
     os.path.join(os.path.dirname(__file__), "advanced_mule_pipeline.pkl"),
     "advanced_mule_pipeline.pkl",
-    "../advanced_mule_pipeline.pkl"
+    "../advanced_mule_pipeline.pkl",
+    "api/advanced_mule_pipeline.pkl",
+    "backend/advanced_mule_pipeline.pkl"
 ]
 
 model_pipeline = None
@@ -44,6 +49,7 @@ if model_pipeline is None:
     print("[ERROR] Could not load advanced_mule_pipeline.pkl from any location.")
 
 
+# Pydantic Request Model
 class PredictRequest(BaseModel):
     Inward_Tx_Count_24h: float = Field(..., ge=0, description="Incoming transactions count in 24 hours")
     In_Out_Fan_Ratio: float = Field(..., ge=0.0, description="Inward to outward transfer destination ratio")
@@ -55,6 +61,7 @@ class PredictRequest(BaseModel):
     Auth_Method: str = Field(..., description="Authentication method: Biometric, PIN, or OTP")
 
 
+# Pydantic Response Model
 class PredictResponse(BaseModel):
     prediction: str
     is_mule: bool
@@ -66,6 +73,7 @@ class PredictResponse(BaseModel):
 
 
 @app.get("/")
+@app.get("/api")
 def read_root():
     return {
         "status": "online",
@@ -76,6 +84,7 @@ def read_root():
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health_check():
     if model_pipeline is None:
         raise HTTPException(status_code=500, detail="ML Model pipeline is not loaded.")
@@ -83,10 +92,12 @@ def health_check():
 
 
 @app.post("/predict", response_model=PredictResponse)
+@app.post("/api/predict", response_model=PredictResponse)
 def predict_mule_risk(payload: PredictRequest):
     if model_pipeline is None:
         raise HTTPException(status_code=500, detail="Prediction model is currently unavailable on the server.")
 
+    # Validate Auth_Method
     valid_auth = ["Biometric", "PIN", "OTP"]
     auth_method = payload.Auth_Method.strip()
     if auth_method not in valid_auth:
@@ -97,6 +108,7 @@ def predict_mule_risk(payload: PredictRequest):
         else:
             auth_method = "OTP"
 
+    # Construct DataFrame with exact feature names and order expected by trained ColumnTransformer
     input_data = pd.DataFrame([{
         'Inward_Tx_Count_24h': float(payload.Inward_Tx_Count_24h),
         'In_Out_Fan_Ratio': float(payload.In_Out_Fan_Ratio),
@@ -109,12 +121,15 @@ def predict_mule_risk(payload: PredictRequest):
     }])
 
     try:
+        # Run Prediction using loaded trained pipeline
         pred_class = int(model_pipeline.predict(input_data)[0])
         probabilities = model_pipeline.predict_proba(input_data)[0]
-
+        
+        # Probabilities: index 0 is Legit (0), index 1 is Mule (1)
         mule_prob = float(probabilities[1])
         risk_score = int(round(mule_prob * 100))
 
+        # Risk Classification & Level
         if mule_prob >= 0.70:
             prediction_label = "HIGH RISK"
             risk_level = "HIGH"
@@ -128,6 +143,7 @@ def predict_mule_risk(payload: PredictRequest):
             risk_level = "LOW"
             is_mule = False
 
+        # Generate Feature Explanations / Reasons based on inputs & model features
         reasons = []
         if payload.Avg_Drain_Time_Mins < 30:
             reasons.append(f"Rapid funds drain time ({payload.Avg_Drain_Time_Mins:.0f} minutes)")
