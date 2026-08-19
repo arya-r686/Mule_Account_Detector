@@ -1,10 +1,14 @@
 {
   "builds": [
     { "src": "api/index.py", "use": "@vercel/python" },
-    { "src": "index.html", "use": "@vercel/static" }
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "advanced_mule_cm.png", "use": "@vercel/static" },
+    { "src": "fintech_mule_dataset.csv", "use": "@vercel/static" },
+    { "src": "advanced_mule_pipeline.pkl", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "api/index.py" },
+    { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "index.html" }
   ]
 }
