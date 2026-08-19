@@ -41,6 +41,25 @@ The system connects an interactive **Frontend Dashboard** to a **Python FastAPI 
 
 ---
 
+## ☁️ Deployment (Vercel)
+
+This app is deployed as a single Vercel project with two parts:
+
+- **Frontend** (`index.html`) — served as a static file.
+- **Backend API** (`api/index.py`) — deployed as a Vercel Python serverless function, reachable at `/api/*` on the same domain as the frontend.
+
+Because both parts share the same domain, no CORS configuration or separate hosting is required in production. `index.html` automatically detects whether it's running locally or on Vercel and switches its API target accordingly:
+
+- **Local development**: calls `http://localhost:8000` (run the backend with `uvicorn backend.main:app --reload`)
+- **Deployed on Vercel**: calls `/api` (relative, same-origin)
+
+**Live app**: https://mule-account-detector-eight.vercel.app/
+
+### Model version pinning
+`advanced_mule_pipeline.pkl` was trained with `scikit-learn==1.9.0`. `api/requirements.txt` pins this exact version to avoid `InconsistentVersionWarning` or broken predictions from a mismatched scikit-learn install at deploy time.
+
+---
+
 ## 📊 Model Evaluation Results
 
 The pipeline was evaluated on a 20% stratified test split (1,000 accounts):
