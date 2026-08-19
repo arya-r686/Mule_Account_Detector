@@ -7,8 +7,6 @@
     { "src": "advanced_mule_pipeline.pkl", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "api/index.py" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "index.html" }
+    { "src": "/api/(.*)", "dest": "api/index.py" }
   ]
 }
