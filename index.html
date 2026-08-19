@@ -462,7 +462,11 @@
     <!-- JavaScript - End-to-End API Integration -->
     <script>
         // Configurable API URL (Environment variable fallback or window override)
-        const API_BASE_URL = window.VITE_API_URL || window.API_URL || "http://localhost:8000";
+        const API_BASE_URL = window.VITE_API_URL || window.API_URL || (
+    location.hostname === "localhost" || location.hostname === "127.0.0.1"
+        ? "http://localhost:8000"
+        : "/api"
+);
         document.getElementById('apiEndpointText').textContent = API_BASE_URL;
 
         let debounceTimer = null;
