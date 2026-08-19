@@ -471,31 +471,35 @@
 
         let debounceTimer = null;
 
-        // Health Check API Server
-        async function checkServerHealth() {
+        // Health Check API Server (with retry for serverless cold starts)
+        async function checkServerHealth(retries = 2) {
             const statusPill = document.getElementById('serverStatusPill');
             const statusDot = document.getElementById('serverStatusDot');
             const statusText = document.getElementById('serverStatusText');
             const errorAlert = document.getElementById('errorAlert');
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/health`, { method: 'GET' });
-                if (response.ok) {
-                    statusPill.className = 'status-pill status-online';
-                    statusDot.className = 'status-dot dot-green';
-                    statusText.textContent = 'PYTHON ML API ONLINE';
-                    errorAlert.style.display = 'none';
-                    return true;
-                } else {
-                    throw new Error(`Server returned HTTP status ${response.status}`);
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/health`, { method: 'GET' });
+                    if (response.ok) {
+                        statusPill.className = 'status-pill status-online';
+                        statusDot.className = 'status-dot dot-green';
+                        statusText.textContent = 'PYTHON ML API ONLINE';
+                        errorAlert.style.display = 'none';
+                        return true;
+                    }
+                } catch (err) {
+                    if (attempt < retries) {
+                        await new Promise(res => setTimeout(res, 1200));
+                    }
                 }
-            } catch (err) {
-                statusPill.className = 'status-pill status-offline';
-                statusDot.className = 'status-dot dot-red';
-                statusText.textContent = 'PYTHON ML API OFFLINE';
-                errorAlert.style.display = 'block';
-                return false;
             }
+
+            statusPill.className = 'status-pill status-offline';
+            statusDot.className = 'status-dot dot-red';
+            statusText.textContent = 'PYTHON ML API OFFLINE';
+            errorAlert.style.display = 'block';
+            return false;
         }
 
         // Trigger Model Prediction with Debouncing
